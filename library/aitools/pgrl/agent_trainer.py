@@ -5,16 +5,15 @@ from .i_environment import IEnvironment
 import torch
 
 
-def PGRL_LOSS(stateAction: StateAction, value=0.0):
+def lossF(stateAction: StateAction, value=0.0):
     dist = torch.distributions.Categorical(stateAction.prob)
     return -dist.log_prob(stateAction.action) * value
 
 
 class AgentTrainer(object):
-    def __init__(self, agent: Agent, optimizer, loss=PGRL_LOSS, y=0.99):
+    def __init__(self, agent: Agent, optimizer, y=0.99):
         self.agent = agent
         self.optimizer = optimizer
-        self.loss = loss
         self.y = y
 
         self.stateActions = []
@@ -34,7 +33,7 @@ class AgentTrainer(object):
             if valueEstimator is not None:
                 value = valueEstimator(sa)
 
-            lossPolicy = self.loss(sa, sa.r - value)
+            lossPolicy = lossF(sa, sa.r - value)
             lossAverage += lossPolicy.item()
 
             lossPolicy.backward(retain_graph=True)
@@ -60,4 +59,4 @@ class AgentTrainer(object):
 
 class VPGTrainer(AgentTrainer):
     def __init__(self, agent, optimizer, y=0.99):
-        super().__init__(agent, optimizer, loss=PGRL_LOSS, y=y)
+        super().__init__(agent, optimizer, y=y)

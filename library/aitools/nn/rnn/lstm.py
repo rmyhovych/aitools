@@ -1,11 +1,10 @@
 import torch
-import torch.nn as nn
 
 
-class NetworkLSTM(nn.Module):
+class NetworkLSTM(torch.nn.Module):
     def __init__(self, inSize, hiddenSize, outSize, outAct):
         super(NetworkLSTM, self).__init__()
-        self.parameterList = nn.ModuleList()
+        self.parameterList = torch.nn.ModuleList()
 
         catInSize = inSize + hiddenSize
         self.forgetGate = self._createForgetGate(catInSize, hiddenSize)
@@ -34,7 +33,7 @@ class NetworkLSTM(nn.Module):
         return self.outputLayer(self.hidden)
 
     def _createForgetGate(self, inSize, outSize):
-        layer = nn.Linear(inSize, outSize, bias=True)
+        layer = torch.nn.Linear(inSize, outSize, bias=True)
         self.parameterList.append(layer)
 
         def forgetGate(xh):
@@ -43,10 +42,10 @@ class NetworkLSTM(nn.Module):
         return forgetGate
 
     def _createUpdateGate(self, inSize, outSize):
-        layerInput = nn.Linear(inSize, outSize, bias=True)
+        layerInput = torch.nn.Linear(inSize, outSize, bias=True)
         self.parameterList.append(layerInput)
 
-        layerAdd = nn.Linear(inSize, outSize, bias=True)
+        layerAdd = torch.nn.Linear(inSize, outSize, bias=True)
         self.parameterList.append(layerAdd)
 
         def updateGate(xh):
@@ -58,7 +57,7 @@ class NetworkLSTM(nn.Module):
         return updateGate
 
     def _createOutputGate(self, inSize, outSize):
-        layerOutput = nn.Linear(inSize, outSize, bias=True)
+        layerOutput = torch.nn.Linear(inSize, outSize, bias=True)
         self.parameterList.append(layerOutput)
 
         def outputGate(xh, cellState):
@@ -70,69 +69,10 @@ class NetworkLSTM(nn.Module):
         return outputGate
 
     def _createOutputLayer(self, inSize, outSize, outAct):
-        layer = nn.Linear(inSize, outSize, bias=True)
+        layer = torch.nn.Linear(inSize, outSize, bias=True)
         self.parameterList.append(layer)
 
         if outAct is None:
             return lambda hidden: layer(hidden)
         else:
             return lambda hidden: outAct(layer(hidden))
-
-
-class NetworkBDLSTMFull(nn.Module):
-    def __init__(self, inSize, hiddenSize, outSize, outAct):
-        super(NetworkBDLSTMFull, self).__init__()
-
-        self.netForward = NetworkLSTM(inSize, hiddenSize, outSize, None)
-        self.netBackward = NetworkLSTM(inSize, hiddenSize, outSize, None)
-
-        self.outLayer = nn.Linear(2 * outSize, outSize, bias=True)
-        self.outAct = outAct
-
-        self.parameterList = nn.ModuleList(
-            [self.netForward, self.netBackward, self.outLayer]
-        )
-
-    def reset(self):
-        self.forwardN.reset()
-        self.backwardN.reset()
-
-    def forward(self, sentence):
-        sentenceBackward = torch.flip(sentence, (0,))
-
-        self._feedNoOut(self.netForward, sentence[:-1])
-        self._feedNoOut(self.netBackward, sentenceBackward[:-1])
-
-        outForward = self.netForward(sentence[-1])
-        outBackward = self.netBackward(sentenceBackward[-1])
-
-        y = torch.cat([outForward, outBackward], dim=0)
-        y = self.outLayer(y)
-        if self.outAct is not None:
-            y = self.outAct(y)
-
-        return y
-
-    def _feedNoOut(self, net, data):
-        net.reset()
-        for character in data:
-            net(character)
-
-
-class NetworkBDLSTMCrop(NetworkBDLSTMFull):
-    def forward(self, sentence, index):
-        beginning = sentence[:index]
-        end = torch.flip(sentence[index:], (0,))
-
-        self._feedNoOut(self.netForward, beginning[:-1])
-        self._feedNoOut(self.netBackward, end[:-1])
-
-        outForward = self.netForward(beginning[-1])
-        outBackward = self.netBackward(end[-1])
-
-        y = torch.cat([outForward, outBackward], dim=0)
-        y = self.outLayer(y)
-        if self.outAct is not None:
-            y = self.outAct(y)
-
-        return y

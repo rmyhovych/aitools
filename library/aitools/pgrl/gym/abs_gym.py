@@ -1,4 +1,4 @@
-from .. import IEnvironment
+from ..i_environment import IEnvironment
 
 import gym
 import torch
