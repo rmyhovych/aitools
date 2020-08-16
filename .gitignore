@@ -5,3 +5,5 @@ build/
 *.spec
 *.tensor
 wiki/*
+
+local_test.py
