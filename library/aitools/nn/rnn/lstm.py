@@ -49,11 +49,9 @@ class NetworkLSTM(torch.jit.ScriptModule):
         self.device = device
 
         self.cell = CellLSTM(input_size, hidden_size)
-        self.output_layer = Linear(hidden_size, output_size)
 
-        self.output_activation = (
-            torch.tensor if output_activation is None else output_activation
-        )
+        self.output_layer = Linear(hidden_size, output_size)
+        self.output_activation = output_activation
 
         self.to(self.device)
 
@@ -67,4 +65,12 @@ class NetworkLSTM(torch.jit.ScriptModule):
         for x in xs:
             h, state = self.cell(x, h, state)
 
-        return self.output_activation(self.output_layer(h))
+        return self._output(h)
+
+    @torch.jit.script_method
+    def _output(self, h):
+        y = self.output_layer(h)
+        if self.output_activation is None:
+            return y
+        else:
+            return self.output_activation(y)
