@@ -1,5 +1,5 @@
 import torch
-from torch.nn import Linear as L
+from torch.nn import Bilinear as L
 
 
 class CellLSTM(torch.jit.ScriptModule):
@@ -7,34 +7,31 @@ class CellLSTM(torch.jit.ScriptModule):
         super(CellLSTM, self).__init__()
         self.hidden_size = hidden_size
 
-        interm_size = input_size + hidden_size
-        self.forget_layer = L(interm_size, hidden_size)
+        self.forget_layer = L(input_size, hidden_size, hidden_size)
 
-        self.update_layer_force = L(interm_size, hidden_size)
-        self.update_layer_direction = L(interm_size, hidden_size)
+        self.update_layer_force = L(input_size, hidden_size, hidden_size)
+        self.update_layer_direction = L(input_size, hidden_size, hidden_size)
 
-        self.output_layer = L(interm_size, hidden_size)
+        self.output_layer = L(input_size, hidden_size, hidden_size)
 
     @torch.jit.script_method
     def forward(self, x, h, state):
-        xh = torch.cat((x, h), dim=0)
-
-        new_state = torch.mul(self._forget(xh), state)
-        new_state = torch.add(self._update(xh), new_state)
-        new_h = torch.mul(self._output(xh), torch.tanh(new_state))
+        new_state = torch.mul(self._forget(x, h), state)
+        new_state = torch.add(self._update(x, h), new_state)
+        new_h = torch.mul(self._output(x, h), torch.tanh(new_state))
 
         return new_h, new_state
 
-    def _forget(self, xh):
-        return torch.sigmoid(self.forget_layer(xh))
+    def _forget(self, x, h):
+        return torch.sigmoid(self.forget_layer(x, h))
 
-    def _update(self, xh):
-        force = torch.sigmoid(self.update_layer_force(xh))
-        direction = torch.tanh(self.update_layer_direction(xh))
+    def _update(self, x, h):
+        force = torch.sigmoid(self.update_layer_force(x, h))
+        direction = torch.tanh(self.update_layer_direction(x, h))
         return torch.mul(force, direction)
 
-    def _output(self, xh):
-        return torch.sigmoid(self.output_layer(xh))
+    def _output(self, x, h):
+        return torch.sigmoid(self.output_layer(x, h))
 
 
 class NetworkLSTM(torch.jit.ScriptModule):
