@@ -1,5 +1,6 @@
 import torch
-from torch.nn import Bilinear as L
+from torch.nn import Bilinear
+from torch.nn import Linear
 
 
 class CellLSTM(torch.jit.ScriptModule):
@@ -7,12 +8,12 @@ class CellLSTM(torch.jit.ScriptModule):
         super(CellLSTM, self).__init__()
         self.hidden_size = hidden_size
 
-        self.forget_layer = L(input_size, hidden_size, hidden_size)
+        self.forget_layer = Bilinear(input_size, hidden_size, hidden_size)
 
-        self.update_layer_force = L(input_size, hidden_size, hidden_size)
-        self.update_layer_direction = L(input_size, hidden_size, hidden_size)
+        self.update_layer_force = Bilinear(input_size, hidden_size, hidden_size)
+        self.update_layer_direction = Bilinear(input_size, hidden_size, hidden_size)
 
-        self.output_layer = L(input_size, hidden_size, hidden_size)
+        self.output_layer = Bilinear(input_size, hidden_size, hidden_size)
 
     @torch.jit.script_method
     def forward(self, x, h, state):
@@ -48,7 +49,7 @@ class NetworkLSTM(torch.jit.ScriptModule):
         self.device = device
 
         self.cell = CellLSTM(input_size, hidden_size)
-        self.output_layer = L(hidden_size, output_size)
+        self.output_layer = Linear(hidden_size, output_size)
 
         self.output_activation = (
             torch.tensor if output_activation is None else output_activation
