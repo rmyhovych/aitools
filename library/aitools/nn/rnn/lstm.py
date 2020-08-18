@@ -3,7 +3,7 @@ from torch.nn import Bilinear
 from torch.nn import Linear
 
 
-class CellLSTM(torch.jit.ScriptModule):
+class CellLSTM(torch.nn.Module):
     def __init__(self, input_size, hidden_size):
         super(CellLSTM, self).__init__()
         self.hidden_size = hidden_size
@@ -15,7 +15,6 @@ class CellLSTM(torch.jit.ScriptModule):
 
         self.output_layer = Bilinear(input_size, hidden_size, hidden_size)
 
-    @torch.jit.script_method
     def forward(self, x, h, state):
         new_state = torch.mul(self._forget(x, h), state)
         new_state = torch.add(self._update(x, h), new_state)
@@ -35,7 +34,7 @@ class CellLSTM(torch.jit.ScriptModule):
         return torch.sigmoid(self.output_layer(x, h))
 
 
-class NetworkLSTM(torch.jit.ScriptModule):
+class NetworkLSTM(torch.nn.Module):
     def __init__(
         self,
         input_size,
@@ -55,7 +54,6 @@ class NetworkLSTM(torch.jit.ScriptModule):
 
         self.to(self.device)
 
-    @torch.jit.script_method
     def forward(self, xs):
         h, state = (
             torch.zeros((self.cell.hidden_size,), device=self.device),
@@ -67,7 +65,6 @@ class NetworkLSTM(torch.jit.ScriptModule):
 
         return self._output(h)
 
-    @torch.jit.script_method
     def _output(self, h):
         y = self.output_layer(h)
         if self.output_activation is None:
