@@ -1,5 +1,4 @@
 import torch
-from torch.nn import Bilinear
 from torch.nn import Linear
 
 
@@ -8,30 +7,33 @@ class CellLSTM(torch.nn.Module):
         super(CellLSTM, self).__init__()
         self.hidden_size = hidden_size
 
-        self.forget_layer = Bilinear(input_size, hidden_size, hidden_size)
+        sub_input_size = input_size + hidden_size
+        self.forget_layer = Linear(sub_input_size, hidden_size)
 
-        self.update_layer_force = Bilinear(input_size, hidden_size, hidden_size)
-        self.update_layer_direction = Bilinear(input_size, hidden_size, hidden_size)
+        self.update_layer_force = Linear(sub_input_size, hidden_size)
+        self.update_layer_direction = Linear(sub_input_size, hidden_size)
 
-        self.output_layer = Bilinear(input_size, hidden_size, hidden_size)
+        self.output_layer = Linear(sub_input_size, hidden_size)
 
     def forward(self, x, h, state):
-        new_state = torch.mul(self._forget(x, h), state)
-        new_state = torch.add(self._update(x, h), new_state)
-        new_h = torch.mul(self._output(x, h), torch.tanh(new_state))
+        xh = torch.cat((x, h))
+
+        new_state = torch.mul(self._forget(xh), state)
+        new_state = torch.add(self._update(xh), new_state)
+        new_h = torch.mul(self._output(xh), torch.tanh(new_state))
 
         return new_h, new_state
 
-    def _forget(self, x, h):
-        return torch.sigmoid(self.forget_layer(x, h))
+    def _forget(self, xh):
+        return torch.sigmoid(self.forget_layer(xh))
 
-    def _update(self, x, h):
-        force = torch.sigmoid(self.update_layer_force(x, h))
-        direction = torch.tanh(self.update_layer_direction(x, h))
+    def _update(self, xh):
+        force = torch.sigmoid(self.update_layer_force(xh))
+        direction = torch.tanh(self.update_layer_direction(xh))
         return torch.mul(force, direction)
 
-    def _output(self, x, h):
-        return torch.sigmoid(self.output_layer(x, h))
+    def _output(self, xh):
+        return torch.sigmoid(self.output_layer(xh))
 
 
 class NetworkLSTM(torch.nn.Module):
