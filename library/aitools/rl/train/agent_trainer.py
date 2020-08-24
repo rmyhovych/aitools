@@ -5,9 +5,9 @@ from .i_environment import IEnvironment
 import torch
 
 
-def lossF(stateAction: StateAction, value=0.0):
-    dist = torch.distributions.Categorical(stateAction.prob)
-    return -dist.log_prob(stateAction.action) * value
+def loss_f(state_action: StateAction, value=0.0):
+    dist = torch.distributions.Categorical(state_action.prob)
+    return -dist.log_prob(state_action.action) * value
 
 
 class AgentTrainer(object):
@@ -16,38 +16,38 @@ class AgentTrainer(object):
         self.optimizer = optimizer
         self.y = y
 
-        self.stateActions = []
+        self.state_actions = []
 
     def __call__(self, env: IEnvironment):
         trajectory = self.agent(env, render=False)
         self._discountRewards(trajectory, self.y)
-        self.stateActions += trajectory
+        self.state_actions += trajectory
         return trajectory
 
     def train(self, valueEstimator=None):
         self.optimizer.zero_grad()
 
         lossAverage = 0.0
-        for sa in self.stateActions:
+        for sa in self.state_actions:
             value = 0.0
             if valueEstimator is not None:
                 value = valueEstimator(sa)
 
-            lossPolicy = lossF(sa, sa.r - value)
-            lossAverage += lossPolicy.item()
+            loss_policy = loss_f(sa, sa.r - value)
+            lossAverage += loss_policy.item()
 
-            lossPolicy.backward(retain_graph=True)
+            loss_policy.backward(retain_graph=True)
         self.optimizer.step()
-        lossAverage /= len(self.stateActions)
+        lossAverage /= len(self.state_actions)
 
-        self.stateActions.clear()
+        self.state_actions.clear()
         return lossAverage
 
     def decisiveness(self):
         decisiveness = 0.0
-        for prob in [[p.item() for p in list(sa.prob)] for sa in self.stateActions]:
+        for prob in [[p.item() for p in list(sa.prob)] for sa in self.state_actions]:
             decisiveness += max(prob)
-        decisiveness /= len(self.stateActions)
+        decisiveness /= len(self.state_actions)
         return decisiveness
 
     def _discountRewards(self, trajectory, y):
