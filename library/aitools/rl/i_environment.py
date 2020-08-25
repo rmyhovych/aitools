@@ -8,8 +8,8 @@ class IEnvironment(object):
     def render(self):
         raise NotImplementedError
 
-    def getSizeObs(self):
+    def get_size_obs(self):
         raise NotImplementedError
 
-    def getSizeAction(self):
+    def get_size_action(self):
         raise NotImplementedError

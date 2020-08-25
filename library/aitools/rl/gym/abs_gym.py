@@ -21,10 +21,10 @@ class AbsGym(IEnvironment):
     def render(self):
         self.env.render()
 
-    def getSizeObs(self):
+    def get_size_obs(self):
         return self.env.observation_space.shape[0]
 
-    def getSizeAction(self):
+    def get_size_action(self):
         return self.env.action_space.n
 
     def _obs_to_tensor(self, obs):
