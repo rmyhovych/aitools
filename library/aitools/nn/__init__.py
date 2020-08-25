@@ -1,2 +1,2 @@
 from . import rnn
-from .feedforward import NetworkFF
+from .network_ff import NetworkFF

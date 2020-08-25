@@ -36,9 +36,7 @@ class NetworkFF(torch.nn.Module):
 
     def __init__(self, layers: List[Linear]):
         super(NetworkFF, self).__init__()
-
-        if len(layers) < 1:
-            raise Exception("Invalid number of layers.")
+        assert len(layers) > 0, "Invalid number of layers."
 
         self.layers = torch.nn.ModuleList(layers)
 
