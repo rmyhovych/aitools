@@ -12,11 +12,11 @@ class AbsGym(IEnvironment):
         self.env.close()
 
     def reset(self):
-        return self._obsToTensor(self.env.reset())
+        return self._obs_to_tensor(self.env.reset())
 
     def step(self, action: int):
         obs, r, done, _ = self.env.step(action)
-        return self._obsToTensor(obs), torch.tensor([r]), done
+        return self._obs_to_tensor(obs), torch.tensor([r]), done
 
     def render(self):
         self.env.render()
@@ -27,5 +27,5 @@ class AbsGym(IEnvironment):
     def getSizeAction(self):
         return self.env.action_space.n
 
-    def _obsToTensor(self, obs):
+    def _obs_to_tensor(self, obs):
         return torch.from_numpy(obs).type(dtype=torch.float)

@@ -1,3 +1,1 @@
-from .nn import *
-from .pgrl import *
-from .utils import *
+from . import nn, rl, utils
