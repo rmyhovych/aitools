@@ -35,12 +35,13 @@ class TrainingProcess(object):
                 average_trajectory_size = 0.0
                 for _ in range(n_trajectories):
                     average_trajectory_size += len(
-                        self.trainer.collect_trajectory(self.env)
+                        self.agent_trainer.collect_trajectory(self.env)
                     )
-                decisivenesses.append(self.trainer.decisiveness())
+                decisivenesses.append(self.agent_trainer.get_decisiveness())
+
+                losses.append(self.agent_trainer.train(self.baseline_provider))
                 self.baseline_provider.update()
 
-                losses.append(self.trainer.train(self.baseline_provider))
                 trajectory_sizes.append(average_trajectory_size / n_trajectories)
                 print("{}\t-> {:0.2f}".format(episode, trajectory_sizes[-1]))
 

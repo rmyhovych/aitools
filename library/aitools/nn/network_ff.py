@@ -14,7 +14,7 @@ class Linear(torch.nn.Module):
     def forward(self, x):
         return self.activation(self.layer(x))
 
-    def _no_activation(tensor):
+    def _no_activation(self, tensor):
         return tensor
 
 

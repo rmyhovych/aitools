@@ -22,7 +22,7 @@ class Agent(object):
             state_action.prob = self.policy_net(obs)
             state_action.action = torch.distributions.Categorical(
                 state_action.prob
-            ).sample()
+            ).sample(sample_shape=(1,))
 
             obs, r, done = env.step(state_action.action.item())
             state_action.r = r

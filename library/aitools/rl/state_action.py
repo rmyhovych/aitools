@@ -4,3 +4,11 @@ class StateAction(object):
         self.prob = prob
         self.action = action
         self.r = r
+
+    def __str__(self):
+        return "[obs={};prob={};action={};r={}]".format(
+            self.obs, self.prob, self.action, self.r
+        )
+
+    def __repr__(self):
+        return str(self)

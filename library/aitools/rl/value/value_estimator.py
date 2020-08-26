@@ -25,7 +25,7 @@ class ValueEstimator(AbsBaselineProvider):
         ys = torch.stack(self.estimated_values)
         self.estimated_values.clear()
 
-        labels = torch.tensor(self.actual_values)
+        labels = torch.stack(self.actual_values)
         self.actual_values.clear()
 
         self.optimizer.zero_grad()
