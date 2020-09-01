@@ -1,5 +1,5 @@
 from .abs_agent_trainer import AbsAgentTrainer
-from ..agent import Agent
+from ..agent_exploring import AgentExploring
 from ..state_action import StateAction
 from ..i_environment import IEnvironment
 
@@ -31,7 +31,7 @@ def vpg_loss_f(probs, actions, values, baselines):
 
 
 class VPGTrainer(AbsAgentTrainer):
-    def __init__(self, agent: Agent, optimizer: torch.optim.Optimizer, y=0.99):
+    def __init__(self, agent: AgentExploring, optimizer: torch.optim.Optimizer, y=0.99):
         super(VPGTrainer, self).__init__(agent=agent, optimizer=optimizer)
         self.y = y
         self.state_actions: List[StateAction] = []

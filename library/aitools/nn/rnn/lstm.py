@@ -57,10 +57,7 @@ class NetworkLSTM(torch.nn.Module):
         self.to(self.device)
 
     def forward(self, xs):
-        h, state = (
-            torch.zeros((self.cell.hidden_size,), device=self.device),
-            torch.zeros((self.cell.hidden_size,), device=self.device),
-        )
+        h, state = self._create_new_states()
 
         for x in xs:
             h, state = self.cell(x, h, state)
@@ -73,3 +70,9 @@ class NetworkLSTM(torch.nn.Module):
             return y
         else:
             return self.output_activation(y)
+
+    def _create_new_states(self):
+        return (
+            torch.zeros((self.cell.hidden_size,), device=self.device),
+            torch.zeros((self.cell.hidden_size,), device=self.device),
+        )

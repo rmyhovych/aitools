@@ -1,11 +1,11 @@
-from ..agent import Agent
+from ..agent_exploring import AgentExploring
 from ..i_environment import IEnvironment
 
 import torch
 
 
 class AbsAgentTrainer(object):
-    def __init__(self, agent: Agent, optimizer: torch.optim.Optimizer):
+    def __init__(self, agent: AgentExploring, optimizer: torch.optim.Optimizer):
         self.agent = agent
         self.optimizer = optimizer
 
