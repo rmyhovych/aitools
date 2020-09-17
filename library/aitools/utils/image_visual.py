@@ -36,7 +36,7 @@ class ImageVisual(object):
 
     def _image(self, display, coordinates, data):
         for pixel, intensity in enumerate(data):
-            self._cell(display, coordinates, pixel, 255 * intensity.item())
+            self._cell(display, coordinates, pixel, 255 * float(intensity))
 
     def _cell(self, display, coordinates, pixel, intensity):
         color = tuple([int(intensity) for _ in range(3)])
