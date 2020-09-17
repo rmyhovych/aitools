@@ -57,7 +57,7 @@ class VPGTrainer(AbsAgentTrainer):
         loss.backward()
         self.optimizer.step()
 
-        return loss
+        return loss.item()
 
     def get_decisiveness(self):
         decisiveness = 0.0
