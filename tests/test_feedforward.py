@@ -1,4 +1,4 @@
-import library.aitools as aitools
+import aitools
 import unittest
 
 import random

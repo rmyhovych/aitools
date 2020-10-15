@@ -1,7 +1,6 @@
 import library.aitools as aitools
 import unittest
 
-import random
 import torch
 
 

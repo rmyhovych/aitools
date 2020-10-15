@@ -55,7 +55,7 @@ class NetworkLSTM(torch.nn.Module):
         self,
         input_size: int,
         memory_size: int,
-        output_layer: Tuple[int, Callable[torch.Tensor], torch.Tensor],
+        output_layer: Tuple[int, Callable[[torch.Tensor], torch.Tensor]],
         *,
         hidden_sizes=[],
         device=None
