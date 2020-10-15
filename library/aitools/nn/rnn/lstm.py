@@ -16,12 +16,13 @@ class CellLSTM(torch.nn.Module):
 
         sub_input_size = input_size + memory_size
 
-        self.forget_module = self._build_module(sub_input_size, hidden_sizes + [memory_size, torch.sigmoid])
+        full_layers = hidden_sizes + [(memory_size, torch.sigmoid,)]
+        self.forget_module = self._build_module(sub_input_size, full_layers)
 
-        self.update_module_force = self._build_module(sub_input_size, hidden_sizes + [memory_size, torch.sigmoid])
-        self.update_module_direction = self._build_module(sub_input_size, hidden_sizes + [memory_size, torch.tanh])
+        self.update_module_force = self._build_module(sub_input_size, full_layers)
+        self.update_module_direction = self._build_module(sub_input_size, full_layers)
 
-        self.output_module = self._build_module(sub_input_size, hidden_sizes + [memory_size, torch.sigmoid])
+        self.output_module = self._build_module(sub_input_size, full_layers)
 
     def forward(self, x, h, state):
         xh = torch.cat((x, h))
