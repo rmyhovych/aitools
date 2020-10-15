@@ -21,7 +21,7 @@ class ValueEstimator(AbsBaselineProvider):
 
         return estimated_value
 
-    def update(self):
+    def update(self) -> float:
         ys = torch.stack(self.estimated_values)
         self.estimated_values.clear()
 
@@ -32,3 +32,5 @@ class ValueEstimator(AbsBaselineProvider):
         loss = self.loss_f(ys, labels)
         loss.backward()
         self.optimizer.step()
+
+        return loss.item()

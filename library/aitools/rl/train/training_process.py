@@ -28,6 +28,7 @@ class TrainingProcess(object):
 
     def train(self, n_trajectories: int, n_episodes: int):
         losses = []
+        losses_baseline = []
         trajectory_sizes = []
         decisivenesses = []
         try:
@@ -40,7 +41,7 @@ class TrainingProcess(object):
                 decisivenesses.append(self.agent_trainer.get_decisiveness())
 
                 losses.append(self.agent_trainer.train(self.baseline_provider))
-                self.baseline_provider.update()
+                losses_baseline.append(self.baseline_provider.update())
 
                 trajectory_sizes.append(average_trajectory_size / n_trajectories)
                 print("{}\t-> {:0.2f}".format(episode, trajectory_sizes[-1]))
@@ -52,12 +53,13 @@ class TrainingProcess(object):
             xs = [x for x in range(len(trajectory_sizes))]
             a, b = np.polyfit(xs, trajectory_sizes, 1)
 
-            fig, axes = plt.subplots(nrows=1, ncols=3)
+            fig, axes = plt.subplots(nrows=1, ncols=4)
             axes[0].plot(losses)
-            axes[1].plot(xs, trajectory_sizes, "g")
-            axes[1].plot(xs, [a * x + b for x in xs], "r")
-            axes[2].plot(decisivenesses)
-            axes[2].set_ylim([0.0, 1.0])
+            axes[1].plot(losses_baseline)
+            axes[2].plot(xs, trajectory_sizes, "g")
+            axes[2].plot(xs, [a * x + b for x in xs], "r")
+            axes[3].plot(decisivenesses)
+            axes[3].set_ylim([0.0, 1.0])
 
             fig.tight_layout()
             plt.show()
