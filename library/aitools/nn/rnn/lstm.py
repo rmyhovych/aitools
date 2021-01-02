@@ -11,6 +11,7 @@ class CellLSTM(torch.nn.Module):
         memory_size: int,
     ):
         super(CellLSTM, self).__init__()
+        self.memory_size = memory_size
 
         sub_input_size = input_size + memory_size
 
@@ -34,6 +35,12 @@ class CellLSTM(torch.nn.Module):
 
         return new_h, new_state
 
+    def create_hidden(self, device):
+        return (
+            torch.zeros((self.memory_size,), device=device),
+            torch.zeros((self.memory_size,), device=device),
+        )
+
     def _forget(self, xh):
         return self.forget_module(xh)
 
@@ -46,7 +53,7 @@ class CellLSTM(torch.nn.Module):
         return self.output_module(xh)
 
     def _build_module(self, in_size: int, out_size: int, out_activation) -> NetworkFF:
-        return NetworkFF.Builder(in_size).add_layer(out_size, out_activation)
+        return NetworkFF.Builder(in_size).add_layer(out_size, out_activation).build()
 
 
 class NetworkLSTM(torch.nn.Module):
@@ -72,15 +79,9 @@ class NetworkLSTM(torch.nn.Module):
         self.to(self.device)
 
     def forward(self, xs):
-        h, state = self._create_new_states()
+        h, state = self.cell.create_hidden(self.device)
 
         for x in xs:
             h, state = self.cell(x, h, state)
 
         return self.output_net(h)
-
-    def _create_new_states(self):
-        return (
-            torch.zeros((self.cell.memory_size,), device=self.device),
-            torch.zeros((self.cell.memory_size,), device=self.device),
-        )
