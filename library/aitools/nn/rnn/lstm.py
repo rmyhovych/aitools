@@ -9,20 +9,21 @@ class CellLSTM(torch.nn.Module):
         self,
         input_size: int,
         memory_size: int,
-        hidden_sizes: List[Tuple[int, Callable[[torch.Tensor], torch.Tensor]]],
     ):
         super(CellLSTM, self).__init__()
-        self.memory_size = memory_size
 
         sub_input_size = input_size + memory_size
 
-        full_layers = hidden_sizes + [(memory_size, torch.sigmoid,)]
-        self.forget_module = self._build_module(sub_input_size, full_layers)
+        self.forget_module = self._build_module(
+            sub_input_size, memory_size, torch.sigmoid,)
 
-        self.update_module_force = self._build_module(sub_input_size, full_layers)
-        self.update_module_direction = self._build_module(sub_input_size, full_layers)
+        self.update_module_force = self._build_module(
+            sub_input_size, memory_size, torch.sigmoid,)
+        self.update_module_direction = self._build_module(
+            sub_input_size, memory_size, torch.tanh,)
 
-        self.output_module = self._build_module(sub_input_size, full_layers)
+        self.output_module = self._build_module(
+            sub_input_size, memory_size, torch.tanh)
 
     def forward(self, x, h, state):
         xh = torch.cat((x, h))
@@ -44,30 +45,27 @@ class CellLSTM(torch.nn.Module):
     def _output(self, xh):
         return self.output_module(xh)
 
-    def _build_module(self, in_size: int, layers: List[Tuple[int, Callable[[torch.Tensor], torch.Tensor]]]) -> NetworkFF:
-        builder = NetworkFF.Builder(in_size)
-        for layer in layers:
-            builder.add_layer(layer[0], layer[1])
-        return builder.build()
+    def _build_module(self, in_size: int, out_size: int, out_activation) -> NetworkFF:
+        return NetworkFF.Builder(in_size).add_layer(out_size, out_activation)
 
 
 class NetworkLSTM(torch.nn.Module):
     def __init__(
         self,
-        input_size: int,
+        in_size: int,
         memory_size: int,
-        output_layer: Tuple[int, Callable[[torch.Tensor], torch.Tensor]],
+        out_size: int,
+        out_activation,
         *,
-        hidden_sizes=[],
         device=None
     ):
         super(NetworkLSTM, self).__init__()
         self.device = device
 
-        self.cell = CellLSTM(input_size, memory_size, hidden_sizes)
+        self.cell = CellLSTM(in_size, memory_size)
         self.output_net = (
             NetworkFF.Builder(memory_size)
-            .add_layer(output_layer[0], output_layer[1])
+            .add_layer(out_size, out_activation)
             .build()
         )
 
